@@ -1,15 +1,27 @@
-import numpy as np 
-import pandas as pd 
+def call_model(provider, model, prompt, temperature, max_retries=50):
+    """Returns (raw_text, resolved_model_id, thinking_tokens)"""
 
-df = pd.read_csv("fasit_attributter.csv")
+    delay = 2.0 
+    for attempt in range(max_retries):
+        try:
+            if provider == "gemini":
+                from google import genai
+                from google.genai import types
+                client = genai.Client()
+                r = client.models.generate_content(
+                    model = model,
+                    contents = prompt,
+                    config = types.GenerateContentConfig(
+                        temperature=temperature,
+                        max_output_tokens=300,
+                        thinking_config=types.ThinkingConfig(thinking_level="low"),
+                    ),
+                )
+                thinking = getattr(r.usage_metadata, "thoughts_token_count", None)
+                return r.text, getattr(r, "model_version", model), thinking
 
-#Columns
-signal_data = df["signal"].values
-
-noise_floor_rms = np.sqrt(np.mean(signal_data**2))
-
-noise_floor_db = np.log10(noise_floor_rms)
-
-print(f"RmS Noise Floor {noise_floor_rms}:.5f")
+            # if provider == "anthropic":
+            #     from anthropic import Anthropic
 
 
+            
