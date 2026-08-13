@@ -48,7 +48,7 @@ ARMS: dict[str, Arm] = {
     "openai": Arm(
         key="openai",
         provider="openai",
-        model="REPLACE_ME", #this part of the code needs replacing!
+        model="REPLACE_ME",
         role="commercial mid-tier",
         max_tokens=512,
         reasoning=False,
