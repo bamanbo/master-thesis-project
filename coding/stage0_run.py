@@ -67,13 +67,13 @@ def already_done(log_path: Path) -> set[tuple[str,int]]:
                     done.add((rec["applicant_id"], rec["rep"]))
     return done
 
-def call_model(provider, model, prompt, temperature, max_tokens, max_retries=5):
+def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
     """Returns (raw_text, resolved_model_id, thinking_tokens)"""
 
     if provider not in {"gemini", "ollama", "anthropic", "openai"}:
         raise ValueError(f"Unknown provider: {provider}")
     
-    delay = 2.0 
+    delay = 15.0 
     for attempt in range(max_retries):
         try:
             if provider == "gemini":
@@ -112,7 +112,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=5):
                 raise 
             print(f"   retry {attempt + 1} after error: {exc}")
             time.sleep(delay)
-            delay = min(delay * 2, 60)
+            delay = min(delay * 2, 120)
     raise RuntimeError(f"call_model exhausted retrues for provider={provider}")
 
 def main():
@@ -127,6 +127,8 @@ def main():
     ap.add_argument("--variant", default="P0")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--yes", action="store_true")
+    ap.add_argument("--sleep", type=float, default=0.0,
+                    help="seconds to wait between calls")
     args = ap.parse_args()
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant)
@@ -182,6 +184,9 @@ def main():
 
             flag = "" if record["score"] is not None else "  <-- PARSE FAILURE"
             print(f"[{i}/{len(work)}] {aid} rep{rep}: {record['score']}{flag}")
+
+            if args.sleep:
+                time.sleep(args.sleep)
 
     print(f"\nDone. {log_path}")
 
