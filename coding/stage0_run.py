@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
+from models import get_arm, make_client
 
 ROOT = Path(__file__).resolve().parent.parent 
 DATA = ROOT / "filer_fra_Dag"
@@ -84,7 +85,7 @@ def already_done(log_path: Path) -> set[tuple[str,int]]:
 def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
     """Returns (raw_text, resolved_model_id, meta)"""
 
-    if provider not in {"gemini", "ollama", "anthropic", "openai"}:
+    if provider not in {"normistral", "gemini", "ollama", "anthropic", "openai"}:
         raise ValueError(f"Unknown provider: {provider}")
     
     delay = 15.0 
@@ -112,6 +113,26 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                 }
                 return r.text, getattr(r, "model_version", model), meta
 
+            if provider == "normistral":
+                arm = get_arm("normistral")
+                c = make_client(arm.provider)
+                kw = {
+                    "model": arm.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    arm.token_param: max_tokens,
+                }
+                if arm.supports_temperature:
+                    kw["temperature"] = temperature
+                r = c.chat.completions.create(**kw)
+                meta = {
+                    "thinking_tokens": None,
+                    "prompt_tokens": getattr(r.usage, "prompt_tokens", None),
+                    "completion_tokens": getattr(r.usage, "completion_tokens", None),
+                    "finish_reason": r.choices[0].finish_reason,
+                    "system_fingerprint": getattr(r, "system_fingerprint", None)
+                }
+                return r.choices[0].message.content, r.model, meta
+
             # if provider == "anthropic":
             #     from anthropic import Anthropic
 
@@ -133,6 +154,8 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                 }
                 return r.choices[0].message.content, r.model, meta
 
+        except (AttributeError, TypeError, KeyError, NameError):
+            raise
         except Exception as exc:
             if attempt == max_retries - 1:
                 raise 
@@ -144,7 +167,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", required=True,
-                    choices=["gemini", "ollama", "anthropic", "openai"])
+                    choices=["normistral", "gemini", "ollama", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
     ap.add_argument("--temperature-honoured", choices=["yes", "no", "unknown"],
@@ -163,6 +186,18 @@ def main():
     if args.provider in {"anthropic", "openai"}:
         sys.exit(f"Provider '{args.provider}' has no branch in call_model() yet "
                  f"(no API key). Implement it before running.")
+
+    if args.provider == "normistral":
+        arm = get_arm("normistral")
+        if args.model != arm.model:
+            sys.exit(f"--model {args.model!r} != ARMS['normistral'].model {arm.model!r}; "
+                     "the log would be mislabelled.")
+        if args.temperature_honoured != "no":
+            sys.exit("Sigma2 does not apply temperature (probe_sigma2.py, probe_seed.py). "
+                     "Pass --temperature-honoured no.")
+        if arm.reasoning and args.max_tokens < 2048:
+            sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
+                     f"(ARMS['normistral'].max_tokens = {arm.max_tokens}).")
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant)
 
