@@ -1,0 +1,23 @@
+{
+  "model": "NorMistral-11b-thinking:latest",
+  "prompt": "Skriv en setning om en tilfeldig by i Norge.",
+  "reps": 5,
+  "max_tokens": 300,
+  "hashes": {
+    "0.0": [
+      "ed54950ac42b",
+      "ea1dc4368b12",
+      "16152e59fb36",
+      "bfb03f95732c",
+      "5b1389dbb350"
+    ],
+    "2.0": [
+      "5649e790b61a",
+      "a506ef6a2077",
+      "c1c1246e7fbf",
+      "97aebb6f2d3d",
+      "4fddb9e20551"
+    ]
+  },
+  "verdict": "NOT HONOURED. t=0 varies as much as t=2"
+}

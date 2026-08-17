@@ -36,7 +36,8 @@ ARMS: dict[str, Arm] = {
         role="open-weights Norwegian (11B), reasoning-tuned",
         max_tokens=4096,
         reasoning=True,
-        supports_seed=True,
+        supports_temperature=False,
+        supports_seed=False,
     ),
 
     # TODO once the key arrives:
