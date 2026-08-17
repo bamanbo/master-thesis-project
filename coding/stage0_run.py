@@ -1,7 +1,7 @@
 """
 Stage 0: estimate the within-candidate score noise floor (sigma).
 
-Runs one prompt variant N times per CV against one model and appends every cal lto a JSONL log.
+Runs one prompt variant N times per CV against one model and appends every call to a JSONL log.
 Resumable: re-running skips (applicant_id, rep) pairs already logged.
 """
 from __future__ import annotations
@@ -12,6 +12,7 @@ import json
 import random
 import re
 import sys 
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,7 +24,8 @@ RESULTS = ROOT / "resultater"
 
 load_dotenv(ROOT / ".env")
 
-SCORE_RE = re.compile(r"SCORE\s*:\s*([0-9]+(?:[.,][0-9]+)?)", re.IGNORECASE)
+SCORE_LINE_RE = re.compile(r"SCORE\s*:\s*([^\n\r]*)", re.IGNORECASE)
+NUM_RE = re.compile(r"[0-9]+(?:[.,][0-9]+)?")
 
 def load_inputs(n_cvs: int, variant_id: str):
     ad = (DATA / "stillingsannonse.md").read_text(encoding="utf-8")
@@ -48,13 +50,25 @@ def load_inputs(n_cvs: int, variant_id: str):
 def build_prompt(template: str, ad: str, cv_text: str) -> str:
     return template.replace("{stillingsannonse}", ad).replace("{cv_text}", cv_text)
 
-def parse_score(text:str):
+def parse_score(text:str | None):
+    """Returns (score, parse_path): no_match | plain | sum_total | sum_added"""
     if not text:
-        return None
-    matches = SCORE_RE.findall(text)
-    if not matches:
-        return None
-    return float(matches[-1].replace(",","."))
+        return None, "no_match"
+    lines = SCORE_LINE_RE.findall(text)
+    if not lines:
+        return None, "no_match"
+    tail = lines[-1]
+    if "=" in tail:
+        nums = NUM_RE.findall(tail.rsplit("=", 1)[1])
+        if not nums:
+            return None, "no_match"
+        return float(nums[0].replace(",", ".")), "sum_total"
+    nums = [float(n.replace(",", ".")) for n in NUM_RE.findall(tail)]
+    if not nums:
+        return None, "no_match"
+    if "+" in tail and len(nums) > 1:
+        return sum(nums), "sum_added"
+    return nums[0], "plain"
 
 def already_done(log_path: Path) -> set[tuple[str,int]]:
     done = set()
@@ -68,7 +82,7 @@ def already_done(log_path: Path) -> set[tuple[str,int]]:
     return done
 
 def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
-    """Returns (raw_text, resolved_model_id, thinking_tokens)"""
+    """Returns (raw_text, resolved_model_id, meta)"""
 
     if provider not in {"gemini", "ollama", "anthropic", "openai"}:
         raise ValueError(f"Unknown provider: {provider}")
@@ -86,11 +100,17 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                     config = types.GenerateContentConfig(
                         temperature=temperature,
                         max_output_tokens=max_tokens,
-                        thinking_config=types.ThinkingConfig(thinking_level="low"),
+                        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
                     ),
                 )
-                thinking = getattr(r.usage_metadata, "thoughts_token_count", None)
-                return r.text, getattr(r, "model_version", model), thinking
+                um = r.usage_metadata
+                meta = {
+                    "thinking_tokens": getattr(um, "thoughts_token_count", None),
+                    "prompt_tokens": getattr(um, "prompt_token_count", None),
+                    "completion_tokens": getattr(um, "candidates_token_count", None),
+                    "finish_reason": str(r.candidates[0].finish_reason) if r.candidates else None,
+                }
+                return r.text, getattr(r, "model_version", model), meta
 
             # if provider == "anthropic":
             #     from anthropic import Anthropic
@@ -105,7 +125,13 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                     model=model, max_tokens=max_tokens, temperature=temperature,
                     messages=[{"role":"user", "content":prompt}],
                 )
-                return r.choices[0].message.content, r.model, None
+                meta = {
+                    "thinking_tokens": None,
+                    "prompt_tokens": getattr(r.usage, "prompt_tokens", None),
+                    "completion_tokens": getattr(r.usage, "completion_tokens", None),
+                    "finish_reason": r.choices[0].finish_reason,
+                }
+                return r.choices[0].message.content, r.model, meta
 
         except Exception as exc:
             if attempt == max_retries - 1:
@@ -121,6 +147,9 @@ def main():
                     choices=["gemini", "ollama", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
+    ap.add_argument("--temperature-honoured", choices=["yes", "no", "unknown"],
+                    default = "unknown",
+                    help="whether this serving stack actually applies temperature")
     ap.add_argument("--max-tokens", type=int, default=300)
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--n-cvs", type=int, default=20)
@@ -130,6 +159,10 @@ def main():
     ap.add_argument("--sleep", type=float, default=0.0,
                     help="seconds to wait between calls")
     args = ap.parse_args()
+
+    if args.provider in {"anthropic", "openai"}:
+        sys.exit(f"Provider '{args.provider}' has no branch in call_model() yet "
+                 f"(no API key). Implement it before running.")
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant)
 
@@ -159,22 +192,27 @@ def main():
     with log_path.open("a", encoding="utf-8") as fh:
         for i, (aid, cv_text, rep) in enumerate(work, start=1):
             prompt = build_prompt(template, ad, cv_text)
-            raw, resolved_model, thinking = call_model(
+            raw, resolved_model, meta = call_model(
                 args.provider, args.model, prompt,
                 args.temperature, args.max_tokens,
             )
+            score, parse_path = parse_score(raw)
             record = {
                 "applicant_id": aid,
                 "rep": rep,
-                "score": parse_score(raw),
+                "score": score,
+                "parse_path": parse_path,
                 "raw_response": raw,
+                "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+                "prompt_chars": len(prompt),
                 "prompt_variant_id": args.variant,
                 "provider": args.provider,
                 "model_requested": args.model,
                 "model_resolved": resolved_model,
-                "temperature": args.temperature,
+                "temperature_requested": args.temperature,
+                "temperature_honoured": args.temperature_honoured,
                 "max_tokens": args.max_tokens,
-                "thinking_tokens": thinking,
+                **meta,
                 "order_seed": args.seed,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             }

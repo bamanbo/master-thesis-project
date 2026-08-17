@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
-
+from typing import Any
 import requests 
 from dotenv import load_dotenv
 
@@ -82,7 +82,7 @@ def get_arm(key: str) -> Arm:
     return arm
 
 #-----------CLIENTS-----------
-def make_client(provider:str):
+def make_client(provider:str) -> Any:
     """Raise RuntimeError so callers can handle it"""
     if provider == "normistral":
         from openai import OpenAI
@@ -124,7 +124,7 @@ def list_available(provider: str) -> list[str]:
     return []
 
 def verify(arm: Arm) -> dict:
-    out = {
+    out: dict[str, Any] = {
         "arm": arm.key,
         "provider": arm.provider,
         "model_requested": arm.model,
