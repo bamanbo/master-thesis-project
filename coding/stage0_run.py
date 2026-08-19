@@ -28,7 +28,7 @@ load_dotenv(ROOT / ".env")
 SCORE_LINE_RE = re.compile(r"SCORE\s*:\s*([^\n\r]*)", re.IGNORECASE)
 NUM_RE = re.compile(r"[0-9]+(?:[.,][0-9]+)?")
 
-def load_inputs(n_cvs: int, variant_id: str):
+def load_inputs(n_cvs: int, variant_id: str, cv_field: str):
     ad = (DATA / "stillingsannonse.md").read_text(encoding="utf-8")
 
     variants = json.loads((DATA / "prompt_varianter.json").read_text(encoding="utf-8"))
@@ -44,7 +44,10 @@ def load_inputs(n_cvs: int, variant_id: str):
             line = line.strip()
             if line:
                 rec = json.loads(line)
-                cvs.append((rec["applicant_id"], rec["cv_text"]))
+                if cv_field not in rec:
+                    sys.exit(f"cv_korpus.jsonl has no field {cv_field!r} "
+                             f"for {rec.get('applicant_id')}")
+                cvs.append((rec["applicant_id"], rec[cv_field]))
     cvs.sort(key=lambda r: r[0])
     return ad, template, cvs[:n_cvs]
 
@@ -204,6 +207,10 @@ def main():
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--sleep", type=float, default=0.0,
                     help="seconds to wait between calls")
+    ap.add_argument("--cv-field", choices=["cv_text", "cv_text_anonymisert"],
+                    default="cv_text",
+                    help="which CV version to send; cv_text carries name, " \
+                    "birth year, address and any parental leave entry")
     args = ap.parse_args()
 
     if args.provider in {"normistral", "openai", "anthropic"}:
@@ -222,10 +229,11 @@ def main():
             sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
                      f"(ARMS[{args.provider!r}].max_tokens = {arm.max_tokens}).")
 
-    ad, template, cvs = load_inputs(args.n_cvs, args.variant)
+    ad, template, cvs = load_inputs(args.n_cvs, args.variant, args.cv_field)
 
     RESULTS.mkdir(exist_ok=True)
-    tag = f"{args.provider}_{args.model}_t{args.temperature}_{args.variant}"
+    cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
+    tag = f"{args.provider}_{args.model}_t{args.temperature}_{args.variant}_{cvtag}"
     tag = tag.replace(".", "-").replace("/", "-").replace(":", "-")
     log_path = RESULTS / f"stage0_{tag}.jsonl"
 
@@ -264,6 +272,7 @@ def main():
                 "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
                 "prompt_chars": len(prompt),
                 "prompt_variant_id": args.variant,
+                "cv_field": args.cv_field,
                 "provider": args.provider,
                 "model_requested": args.model,
                 "model_resolved": resolved_model,
