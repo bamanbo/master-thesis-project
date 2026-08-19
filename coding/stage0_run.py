@@ -110,11 +110,12 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                     "prompt_tokens": getattr(um, "prompt_token_count", None),
                     "completion_tokens": getattr(um, "candidates_token_count", None),
                     "finish_reason": str(r.candidates[0].finish_reason) if r.candidates else None,
+                    "system_fingerprint": None,
                 }
                 return r.text, getattr(r, "model_version", model), meta
 
-            if provider == "normistral":
-                arm = get_arm("normistral")
+            if provider in {"normistral", "openai"}:
+                arm = get_arm(provider)
                 c = make_client(arm.provider)
                 kw = {
                     "model": arm.model,
@@ -124,20 +125,40 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                 if arm.supports_temperature:
                     kw["temperature"] = temperature
                 r = c.chat.completions.create(**kw)
+                u = r.usage
                 meta = {
-                    "thinking_tokens": None,
-                    "prompt_tokens": getattr(r.usage, "prompt_tokens", None),
-                    "completion_tokens": getattr(r.usage, "completion_tokens", None),
+                    "thinking_tokens": getattr(
+                        getattr(u, "completion_tokens_details", None),
+                        "reasoning_tokens", None),
+                    "prompt_tokens": getattr(u, "prompt_tokens", None),
+                    "completion_tokens": getattr(u, "completion_tokens", None),
                     "finish_reason": r.choices[0].finish_reason,
                     "system_fingerprint": getattr(r, "system_fingerprint", None)
                 }
                 return r.choices[0].message.content, r.model, meta
 
-            # if provider == "anthropic":
-            #     from anthropic import Anthropic
-
-            # if provider == "openai":
-            #     from openai import OpenAI
+            if provider == "anthropic":
+                arm = get_arm("anthropic")
+                c = make_client(arm.provider)
+                kw = {
+                    "model": arm.model, 
+                    "max_tokens": max_tokens,
+                    "messages": [{"role": "user", "content": prompt}],
+                }
+                if arm.supports_temperature:
+                    kw["temperature"] = temperature
+                r = c.messages.create(**kw)
+                u = r.usage
+                meta = {
+                    "thinking_tokens": None,
+                    "prompt_tokens": getattr(u, "input_tokens", None),
+                    "completion_tokens": getattr(u, "output_tokens", None),
+                    "finish_reason": r.stop_reason,
+                    "system_fingerprint": "n/a (provider does not emit this field)",
+                }
+                text = "".join(
+                    b.text for b in r.content if getattr(b, "type", "") == "text")
+                return text, r.model, meta
 
             if provider == "ollama":
                 from openai import OpenAI
@@ -151,6 +172,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
                     "prompt_tokens": getattr(r.usage, "prompt_tokens", None),
                     "completion_tokens": getattr(r.usage, "completion_tokens", None),
                     "finish_reason": r.choices[0].finish_reason,
+                    "system_fingerprint": getattr(r, "system_fingerprint", None),
                 }
                 return r.choices[0].message.content, r.model, meta
 
@@ -170,7 +192,8 @@ def main():
                     choices=["normistral", "gemini", "ollama", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
-    ap.add_argument("--temperature-honoured", choices=["yes", "no", "unknown"],
+    ap.add_argument("--temperature-honoured", 
+                    choices=["yes", "ignored", "rejected", "unknown"],
                     default = "unknown",
                     help="whether this serving stack actually applies temperature")
     ap.add_argument("--max-tokens", type=int, default=300)
@@ -183,21 +206,21 @@ def main():
                     help="seconds to wait between calls")
     args = ap.parse_args()
 
-    if args.provider in {"anthropic", "openai"}:
-        sys.exit(f"Provider '{args.provider}' has no branch in call_model() yet "
-                 f"(no API key). Implement it before running.")
-
-    if args.provider == "normistral":
-        arm = get_arm("normistral")
+    if args.provider in {"normistral", "openai", "anthropic"}:
+        arm = get_arm(args.provider)
         if args.model != arm.model:
-            sys.exit(f"--model {args.model!r} != ARMS['normistral'].model {arm.model!r}; "
+            sys.exit(f"--model {args.model!r} != ARMS[{args.provider!r}].model {arm.model!r}; "
                      "the log would be mislabelled.")
-        if args.temperature_honoured != "no":
-            sys.exit("Sigma2 does not apply temperature (probe_sigma2.py, probe_seed.py). "
-                     "Pass --temperature-honoured no.")
+        if arm.supports_temperature and args.temperature_honoured != "yes":
+            sys.exit(f"ARMS[{args.provider!r}] applies temperature. "
+                     "Pass --temperature-honoured yes.")
+        if not arm.supports_temperature and args.temperature_honoured not in {"ignored", "rejected"}:
+            sys.exit(f"ARMS[{args.provider!r}] does not apply temperature. "
+                     "Pass --temperature-honoured ignored (accepted then dropped, e.g. Sigma2) "
+                     "or rejected (400 error, e.g. gpt-5.6-luna).")
         if arm.reasoning and args.max_tokens < 2048:
             sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
-                     f"(ARMS['normistral'].max_tokens = {arm.max_tokens}).")
+                     f"(ARMS[{args.provider!r}].max_tokens = {arm.max_tokens}).")
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant)
 

@@ -40,30 +40,22 @@ ARMS: dict[str, Arm] = {
         supports_seed=False,
     ),
 
-    # TODO once the key arrives:
-    #   python coding/models.py --list openai
-    # Prefer a NON-reasoning model unless you deliberately want all three arms
-    # to reason — mixing confounds RQ4 with a reasoning/non-reasoning contrast.
-    # If you pick a reasoning model, set reasoning=True, raise max_tokens to
-    # 4096, set supports_temperature=False and token_param="max_completion_tokens".
     "openai": Arm(
         key="openai",
         provider="openai",
-        model="REPLACE_ME",
-        role="commercial mid-tier",
-        max_tokens=512,
-        reasoning=False,
+        model="gpt-5.6-luna",
+        role="commercial, cheapest current tier",
+        max_tokens=4096,
+        reasoning=True,
+        supports_temperature=False,
+        token_param="max_completion_tokens",
     ),
 
-    # TODO once the key arrives:
-    #   python coding/models.py --list anthropic
-    # Pin the DATED snapshot (e.g. claude-sonnet-5-20260115), never the bare
-    # alias: aliases repoint under you mid-experiment and silently break RQ1.
     "anthropic": Arm(
         key="anthropic",
         provider="anthropic",
-        model="REPLACE_ME",
-        role="commercial frontier",
+        model="claude-haiku-4-5-20251001",
+        role="commercial, cheapest current tier",
         max_tokens=512,
         reasoning=False,
     ),
@@ -146,7 +138,7 @@ def verify(arm: Arm) -> dict:
                 kw["temperature"] = 0
             r = c.messages.create(**kw)
             out["model_resolved"] = getattr(r, "model", arm.model)
-            out["system_fingerprint"] = None
+            out["system_fingerprint"] = "n/a (provider does not emit this field)"
             out["reply"] = "".join(
                 b.text for b in r.content if getattr(b, "type", "") == "text")[:160]
         else:
