@@ -1,0 +1,65 @@
+{
+  "probe": "seed",
+  "model": "NorMistral-11b-thinking:latest",
+  "prompt": "Skriv en setning om en tilfeldig by i Norge.",
+  "max_tokens": 300,
+  "checked_utc": "2026-08-19T13:42:04.756449+00:00",
+  "n_calls": 7,
+  "distinct_hashes": 7,
+  "seeds_repeated": {
+    "42": 3,
+    "7": 2
+  },
+  "calls": [
+    {
+      "seed": null,
+      "http_status": 200,
+      "sha256_12": "aa96d0904395",
+      "chars": 1064,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en klar forespørsel om innhold.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som beskriver byen på en positiv og informativ måte\n3. Holde setningen kort og informativ\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Tromsø - nordlys, arktisk, vakker natur\n- Bergen - regnbyen, Bryggen, fjellene\n- Trondheim - Nidarosdomen, studentby, vakker beliggenhet\n- Stavanger - oljebyen, vakker natur, gammel bykjerne\n\nLa meg velge en by som er litt annerledes og som har en tydelig karakteristikk.\n\nLa meg "
+    },
+    {
+      "seed": null,
+      "http_status": 200,
+      "sha256_12": "2ce3e73b4a0d",
+      "chars": 1045,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en enkel forespørsel om å produsere innhold.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som beskriver eller nevner den byen på en positiv og informativ måte\n3. Holde setningen kort og tydelig\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Bergen - kjent for Bryggen, fjellene, regnet\n- Trondheim - kjent for Nidarosdomen, studentbyen\n- Tromsø - kjent for nordlyset, arktisk by\n- Stavanger - kjent for oljeindustrien, gamlebyen\n\nLa meg velge en by som er relativt kjent og har en positiv assos"
+    },
+    {
+      "seed": 42,
+      "http_status": 200,
+      "sha256_12": "e72a6c060c60",
+      "chars": 1209,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en forespørsel om å produsere tekstinnhold som ikke er forhåndsprogrammerte fakta eller informasjon.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som beskriver eller gir en kort beskrivelse av byen\n3. Gjøre det på en engasjerende og informativ måte\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Bergen - kjent for Bryggen, regn, fjell og sjø\n- Tromsø - kjent for nordlys, arktisk klima og Ishavskatedralen\n- Trondheim - kjent for Nidarosdomen, studentby og Nidelva\n- Stavanger - kjent for olje"
+    },
+    {
+      "seed": 42,
+      "http_status": 200,
+      "sha256_12": "e73f42a33821",
+      "chars": 1030,
+      "response_prefix": "<think> Brukeren ber meg om å skrive \"en setning om en tilfeldig by i Norge\". Dette er en enkel forespørsel om å produsere tekstinnhold.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som beskriver eller nevner byen på en positiv og informativ måte\n3. Holde det kort og tydelig\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Bergen - kjent for Bryggen, fjellene, regnet\n- Trondheim - kjent for Nidarosdomen, studenter, Nidelva\n- Tromsø - kjent for nordlyset, arktisk, Ishavskatedralen\n- Stavanger - kjent for oljeindustrien, Preikestolen, gamlebyen\n- Oslo - Norges hovedstad, Opera"
+    },
+    {
+      "seed": 42,
+      "http_status": 200,
+      "sha256_12": "334b1a34bfd2",
+      "chars": 1216,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en enkel forespørsel om å produsere innhold som ikke krever noen spesifikk kunnskap om byer i Norge.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge.\n2. Skrive en setning som beskriver eller nevner byen på en positiv måte.\n3. Holde setningen kort og informativ.\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Tromsø - \"Tromsø bader i nordlys denne vinteren.\"\n- Bergen - \"I Bergen skinner solen på de fargerike trehusene.\"\n- Oslo - \"Oslo er vakker i høstfarger.\"\n- Trondheim - \"Trondheim er kjent for sin studentkultur."
+    },
+    {
+      "seed": 7,
+      "http_status": 200,
+      "sha256_12": "ede67825b880",
+      "chars": 1119,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en enkel forespørsel om å produsere innhold.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som beskriver byen på en positiv og informativ måte\n3. Holde setningen kort og informativ\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Tromsø - kjent for nordlys, arktisk klima, universitet\n- Bergen - kjent for Bryggen, regn, fjell\n- Trondheim - kjent for Nidarosdomen, studentby, teknologi\n- Stavanger - kjent for oljeindustrien, strender, Preikestolen\n\nLa meg velge en by som er relativt kjent og har"
+    },
+    {
+      "seed": 7,
+      "http_status": 200,
+      "sha256_12": "bf68fe43bae0",
+      "chars": 1259,
+      "response_prefix": "<think> Brukeren ber meg om å skrive en setning om en tilfeldig by i Norge. Dette er en enkel forespørsel om å produsere tekstinnhold.\n\nJeg bør:\n1. Velge en tilfeldig by i Norge\n2. Skrive en setning som:\n   - Nevner byen\n   - Er informativ og positiv\n   - Holder det kort og tydelig\n\nLa meg tenke på noen tilfeldige byer i Norge:\n- Tromsø\n- Bergen\n- Trondheim\n- Stavanger\n- Oslo\n\nLa meg velge en by som ikke er for kjent, kanskje en litt mindre by som er typisk for Norge.\n\nJeg bør:\n- Velge en by\n- Skrive en setning som:\n  \"I dag skinner solen i den lille kystbyen Ålesund.\"\n  \"I dag er det regn i d"
+    }
+  ],
+  "verdict": "NOT HONOURED. repeated calls at the same seed produced different output; parameter accepted with no effect"
+}
