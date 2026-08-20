@@ -4,7 +4,12 @@ import os
 import sys
 import time 
 import requests 
+from datetime import datetime, timezone
+from pathlib import Path
 from dotenv import load_dotenv
+
+ROOT = Path(__file__).resolve().parent.parent
+RESULTS = ROOT / "resultater"
 
 URL = "https://chat.llm.sigma2.no/api/chat/completions"
 MODEL = "NorMistral-11b-thinking:latest"
@@ -12,8 +17,9 @@ PROMPT = "Skriv en setning om en tilfeldig by i Norge."
 REPS = 5
 MAX_TOKENS = 300
 TEMPS = [0.0, 2.0]
+PREFIX_CHARS = 600
 
-load_dotenv()
+load_dotenv(ROOT / ".env")
 API_KEY = os.environ.get("SIGMA2_API_KEY")
 if not API_KEY:
     sys.exit("SIGMA2_API_KEY not found in .env")
@@ -46,6 +52,7 @@ def digest(text):
 
 def main():
     results = {}
+    calls = []
     for temp in TEMPS:
         print("\n=== temperature = {} ===".format(temp))
         hashes = []
@@ -54,6 +61,8 @@ def main():
                 text, finish, fp, dt = call(temp)
             except Exception as e:
                 print("  rep {}: ERROR {}".format(i+1, e))
+                calls.append({"temperature": temp, "rep": i+1,
+                              "error": "{}: {}".format(type(e).__name__, e)})
                 continue
             h = digest(text)
             hashes.append(h)
@@ -61,6 +70,10 @@ def main():
             print(" rep{}: {} {:.1f}s finish={} fp={}".format(
                 i + 1, h, dt, finish, fp))
             print("     {}".format(preview))
+            calls.append({"temperature": temp, "rep": i+1, "sha256_12": h,
+                          "chars": len(text), "finish_reason": finish,
+                          "system_fingerprint": fp, "seconds": round(dt, 2),
+                          "response_prefix": text[:PREFIX_CHARS]})
         results[temp] = hashes
 
     print("\n=== summary ===")
@@ -83,16 +96,21 @@ def main():
     print("\n VERDICT: " + verdict)
 
     out = {
+        "probe": "temperature",
         "model": MODEL, 
         "prompt": PROMPT,
         "reps": REPS,
         "max_tokens": MAX_TOKENS,
+        "temperatures": TEMPS,
+        "checked_utc": datetime.now(timezone.utc).isoformat(),
         "hashes": {str(k): v for k, v in results.items()},
+        "calls": calls,
         "verdict": verdict,
     }
-    with open("resultater/probe_sigma2.json", "w") as f:
-        json.dump(out, f, indent=2, ensure_ascii=False)
-    print("  written: resultater/probe_sigma.json")
+    RESULTS.mkdir(exist_ok=True)
+    path = RESULTS / "probe_sigma2.json"
+    path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(" written: {}".format(path))
 
 if __name__ == "__main__":
     main()
