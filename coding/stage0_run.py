@@ -1,9 +1,3 @@
-"""
-Stage 0: estimate the within-candidate score noise floor (sigma).
-
-Runs one prompt variant N times per CV against one model and appends every call to a JSONL log.
-Resumable: re-running skips (applicant_id, rep) pairs already logged.
-"""
 from __future__ import annotations
 
 import time
