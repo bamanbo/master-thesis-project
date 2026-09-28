@@ -207,9 +207,9 @@ def main():
     if args.model != arm.model:
         sys.exit(f"--model {args.model!r} != ARMS[{args.provider}].model {arm.model!r}; "
                  "the log would be mislabelled.")
-        if arm.reasoning and args.max_tokens < 2048:
-            sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
-                     f"(ARMS[{args.provider!r}].max_tokens = {arm.max_tokens}).")
+    if arm.reasoning and args.max_tokens < 2048:
+        sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
+                    f"(ARMS[{args.provider!r}].max_tokens = {arm.max_tokens}).")
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant, args.cv_field)
 
