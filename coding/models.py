@@ -50,7 +50,7 @@ ARMS: dict[str, Arm] = {
         max_tokens=4096,
         reasoning=True,
         supports_temperature=False,
-        token_param="max_completion_tokens"
+        token_param="max_completion_tokens",
         temperature_behaviour="rejected",
     ),
 

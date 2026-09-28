@@ -123,16 +123,26 @@ def load_corpus(cv_field: str, n_cvs: int) -> list[tuple[str,str]]:
         cvs.sort(key=lambda r: r[0])
         return cvs[:n_cvs]
 
-def already_done(log_path: Path) -> set[tuple[str, str, int]]:
-    done = set()
+def already_done(log_path: Path) -> tuple[set[tuple[str, str, int]], int]:
+    """Returns (cells with outcome 'ok', total rows in the log).
+    
+    api_error, no_score, empty and truncated rows are not counted as done.
+     Truncated is deliberate: raising the token budget should make a resume redo those cells."""
+
+    done: set[tuple[str, str, int]] = set()
+    rows = 0
     if log_path.exists():
         with log_path.open(encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
-                if line:
-                    r = json.loads(line)
-                    done.add((r["prompt_variant_id"], r["applicant_id"], r["rep"]))
-    return done
+                if not line:
+                    continue
+                rows += 1
+                r = json.loads(line)
+                if r.get("outcome") == "ok":
+                    done.add((r["prompt_variant_id"], r["applicant_id"],
+                              r["rep"]))
+    return done, rows
 
 def check_ladder(cv_field: str) -> None:
     """Offline: confirm step zero is byte-identical and print the ladder."""
@@ -176,7 +186,7 @@ def main():
     ap.add_argument("--n-cvs", type=int, default=40)
     ap.add_argument("--cv-field", choices=["cv_text", "cv_text_anonymisert"],
                     default="cv_text")
-    ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument("--temperature", type=float, required=True)
     ap.add_argument("--rpm", type=float, default=0.0,
                     help="max requests per minute; 0 disables pacing")
     ap.add_argument("--max-calls", type=int, default=0,
@@ -193,6 +203,9 @@ def main():
         sys.exit("--arm is required (or use --check-ladder)")
 
     arm = get_arm(args.arm)
+    if arm.reasoning and arm.max_tokens < 2048:
+        sys.exit(f"ARMS[{args.arm!r}].max_tokens = {arm.max_tokens} is too "
+                 "low for a reasoning arm.")
     ad = (DATA / "stillingsannonse.md").read_text(encoding="utf-8")
     variants = load_variants(args.variants)
     cvs = load_corpus(args.cv_field, args.n_cvs)
@@ -200,7 +213,7 @@ def main():
     RESULTS.mkdir(exist_ok=True)
     cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
     log_path = RESULTS / f"run_{args.arm}_{cvtag}.jsonl"
-    done = already_done(log_path)
+    done, rows_logged = already_done(log_path)
 
     work = [(v, aid, cv, rep)
             for v in variants
@@ -213,7 +226,8 @@ def main():
 
     print(f"arm {args.arm} ({arm.model}) | cv_field {args.cv_field}")
     print(f"variants {', '.join(v['variant_id'] for v in variants)} "
-          f"| CVs {len(cvs)} | already logged {len(done)}")
+          f"| CVs {len(cvs)} | rows logged {rows_logged} "
+          f"| usable {len(done)} | retrying {rows_logged - len(done)}")
     print(f"Calls to make: {len(work)}")
     print(f"Log: {log_path}")
     if not work:
@@ -262,7 +276,8 @@ def main():
                 "model_requested": arm.model,
                 "model_resolved": resolved,
                 "temperature_requested": args.temperature,
-                "supports_temperature": arm.supports_temperature,
+                "temperature_sent": arm.supports_temperature,
+                "temperature_behaviour": arm.temperature_behaviour,
                 "max_tokens": arm.max_tokens,
                 **meta,
                 "order_seed": args.seed,

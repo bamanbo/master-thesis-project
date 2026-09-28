@@ -68,16 +68,25 @@ def parse_score(text:str | None):
         return sum(nums), "sum_added"
     return nums[0], "plain"
 
-def already_done(log_path: Path) -> set[tuple[str,int]]:
-    done = set()
+def already_done(log_path: Path) -> tuple[set[tuple[str,int]], int]:
+    """Returns (cells with a usable score, total rows in the log).
+    
+    A row whose score is None is not counted as done, so a resume 
+    retries it instead of inheriting the hole."""
+    done: set[tuple[str,int]] = set()
+    rows = 0
     if log_path.exists():
         with log_path.open(encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
-                if line:
-                    rec = json.loads(line)
+                if not line:
+                    continue
+                rows += 1 
+                rec = json.loads(line)
+                if rec.get("score") is not None:
                     done.add((rec["applicant_id"], rec["rep"]))
-    return done
+    return done, rows
+
 
 def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
     """Returns (raw_text, resolved_model_id, meta)"""
@@ -219,7 +228,7 @@ def main():
     tag = tag.replace(".", "-").replace("/", "-").replace(":", "-")
     log_path = RESULTS / f"stage0_{tag}.jsonl"
 
-    done = already_done(log_path)
+    done, rows_logged = already_done(log_path)
     work = [
         (aid, cv, rep)
         for aid,cv in cvs
@@ -228,7 +237,8 @@ def main():
     ]
     random.Random(args.seed).shuffle(work)
 
-    print(f"CVs: {len(cvs)} | reps: {args.reps} | already logged: {len(done)}")
+    print(f"CVs: {len(cvs)} | reps: {args.reps} | rows logged: {rows_logged} "
+          f"| usable: {len(done)} | retrying: {rows_logged - len(done)}")
     print(f"Calls to make: {len(work)}")
     print(f"Log: {log_path}")
     if not work:
