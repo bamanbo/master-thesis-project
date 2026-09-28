@@ -196,7 +196,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", required=True,
-                    choices=["normistral", "gemini", "ollama", "anthropic", "openai"])
+                    choices=["normistral", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
     ap.add_argument("--max-tokens", type=int, default=300)
