@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 from models import get_arm, make_client
 
 ROOT = Path(__file__).resolve().parent.parent 
-DATA = ROOT / "filer_fra_Dag"
+#DATA = ROOT / "filer_fra_Dag"
+DATA = ROOT / "korpus_n150_s11"
 RESULTS = ROOT / "resultater"
 
 load_dotenv(ROOT / ".env")

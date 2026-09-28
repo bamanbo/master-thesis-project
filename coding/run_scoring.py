@@ -24,7 +24,8 @@ from models import get_arm
 from stage0_run import build_prompt, call_model
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "filer_fra_Dag"
+#DATA = ROOT / "filer_fra_Dag"
+DATA = ROOT / "korpus_n150_s11"
 RESULTS = ROOT / "resultater"
 
 THINK_RE = re.compile(r"<think>.*?</think>\s*", re.S)
