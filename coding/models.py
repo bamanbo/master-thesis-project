@@ -27,6 +27,7 @@ class Arm:
     supports_temperature: bool = True 
     supports_seed: bool = False
     token_param: str="max_tokens"
+    temperature_behaviour: str = "unknown"
 
 ARMS: dict[str, Arm] = {
     "normistral": Arm(
@@ -38,6 +39,7 @@ ARMS: dict[str, Arm] = {
         reasoning=True,
         supports_temperature=False,
         supports_seed=False,
+        temperature_behaviour="ignored",
     ),
 
     "openai": Arm(
@@ -48,7 +50,8 @@ ARMS: dict[str, Arm] = {
         max_tokens=4096,
         reasoning=True,
         supports_temperature=False,
-        token_param="max_completion_tokens",
+        token_param="max_completion_tokens"
+        temperature_behaviour="rejected",
     ),
 
     "anthropic": Arm(
@@ -58,6 +61,8 @@ ARMS: dict[str, Arm] = {
         role="commercial, cheapest current tier",
         max_tokens=512,
         reasoning=False,
+        supports_temperature = False,
+        temperature_behaviour="applied",
     ),
 }
 

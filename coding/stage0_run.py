@@ -189,10 +189,6 @@ def main():
                     choices=["normistral", "gemini", "ollama", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
-    ap.add_argument("--temperature-honoured", 
-                    choices=["yes", "ignored", "rejected", "unknown"],
-                    default = "unknown",
-                    help="whether this serving stack actually applies temperature")
     ap.add_argument("--max-tokens", type=int, default=300)
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--n-cvs", type=int, default=20)
@@ -207,18 +203,10 @@ def main():
                     "birth year, address and any parental leave entry")
     args = ap.parse_args()
 
-    if args.provider in {"normistral", "openai", "anthropic"}:
-        arm = get_arm(args.provider)
-        if args.model != arm.model:
-            sys.exit(f"--model {args.model!r} != ARMS[{args.provider!r}].model {arm.model!r}; "
-                     "the log would be mislabelled.")
-        if arm.supports_temperature and args.temperature_honoured != "yes":
-            sys.exit(f"ARMS[{args.provider!r}] applies temperature. "
-                     "Pass --temperature-honoured yes.")
-        if not arm.supports_temperature and args.temperature_honoured not in {"ignored", "rejected"}:
-            sys.exit(f"ARMS[{args.provider!r}] does not apply temperature. "
-                     "Pass --temperature-honoured ignored (accepted then dropped, e.g. Sigma2) "
-                     "or rejected (400 error, e.g. gpt-5.6-luna).")
+    arm = get_arm(args.provider)
+    if args.model != arm.model:
+        sys.exit(f"--model {args.model!r} != ARMS[{args.provider}].model {arm.model!r}; "
+                 "the log would be mislabelled.")
         if arm.reasoning and args.max_tokens < 2048:
             sys.exit(f"--max-tokens {args.max_tokens} too low for a reasoning arm "
                      f"(ARMS[{args.provider!r}].max_tokens = {arm.max_tokens}).")
@@ -271,7 +259,8 @@ def main():
                 "model_requested": args.model,
                 "model_resolved": resolved_model,
                 "temperature_requested": args.temperature,
-                "temperature_honoured": args.temperature_honoured,
+                "temperature_sent": arm.supports_temperature,
+                "temperature_behaviour": arm.temperature_behaviour,
                 "max_tokens": args.max_tokens,
                 **meta,
                 "order_seed": args.seed,
