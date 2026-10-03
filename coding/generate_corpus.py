@@ -3,11 +3,6 @@
 """
 generate_corpus.py -- syntetisk norsk CV-korpus for skjørhetseksperimentet.
 
-===========================================================================
- FASITEN (ANSWER KEY) -- INSTRUKTØRENS EKSEMPLAR. DELES IKKE MED STUDENTER
- SOM ARBEIDER MED MODUL B-D.
-===========================================================================
-
 Denne fila implementerer §3.1 i experiment_design_generative_cv_ranking.md:
 en to-stegs generator der grunnsannheten ligger i en strukturert tabell og
 CV-teksten kun er en gjengivelse av den.
@@ -526,9 +521,11 @@ def bygg_person(rng, aid, gender, name_origin, meritt=None, proxy=None):
     institusjon = rng.choice(INSTITUSJONER[p["institution_tier"]])
     program = rng.choice(STUDIEPROGRAM[m["education"]])
 
-    # Alder følger erfaring (meritt), ikke demografi
+    # Alder følger erfaring OG hull. Hullets forekomst er kjønnet, så
+    # grad_year og birth_year bærer et svakt kjønnssignal
     studieaar = 3 if m["education"] == "Bachelor" else 5
-    grad_year = 2026 - m["years_experience"] - (p["gap_months"] // 12)
+    # REVISJON R1: samme avrunding som sett_inn_hull, se hull_aar.
+    grad_year = (2026 - m["years_experience"] - hull_aar(p["gap_months"]))
     fodselsaar = grad_year - 21 - studieaar + 3
 
     skills = KRAVSKILLS[:m["skills_matched"]]
@@ -607,6 +604,17 @@ def bygg_roller(rng, m, p, grad_year):
                                p["gap_months"], p["gap_framing"])
     return roller, rene
 
+def hull_aar(maaneder):
+    """Hullets lengde slik CV-en viser det: hele aar, minst ett.
+    
+    REVISJON R1. Originalen brukte måneder // 12 for grad_year og
+    round(maaneder / 12) for datoforskyvning. For 10 og 18 måneder
+    gir de ulikt svar, og første jobb startet da året før 
+    uteksaminering. 18 måneder gir 2 år.
+    """
+    if maaneder <= 0:
+        return 0
+    return max(1, round(maaneder / 12))
 
 def sett_inn_hull(roller, maaneder, ramme):
     """Legger hullet MELLOM stillinger, slik at det gir et synlig datebrudd.
@@ -619,8 +627,10 @@ def sett_inn_hull(roller, maaneder, ramme):
     begge armer; bare merkelappen varierer.
     """
     roller = [r for r in roller if not r.get("_hull")]
-    aar = max(1, round(maaneder / 12))
-    idx = 1 if len(roller) >= 2 else 1
+    aar = hull_aar(maaneder)
+    # MERK (R2): begge grener var 1. Med én stilling havner hullet
+    # mellom utdanning og eneste jobb, ikke mellom to stillinger.
+    idx = 1
     grense = roller[idx - 1]["fra"]
     for r in roller[idx:]:
         r["fra"] -= aar
@@ -834,6 +844,11 @@ def tving_hull(person, ramme, rng):
     p["_roller"] = sett_inn_hull(rene, 12, ramme)
     p["employment_gap_months"] = 12
     p["gap_framing"] = ramme
+    # REVISJON R3: grad_year og birth_year må følge hullet, ellers
+    # starter første jobb året før uteksaminering.
+    studieaar = 3 if p["education"] == "Bachelor" else 5
+    p["grad_year"] = 2026 - p["years_experience"] - hull_aar(12)
+    p["birth_year"] = p["grad_year"] - 21 - studieaar + 3
     return p
 
 
