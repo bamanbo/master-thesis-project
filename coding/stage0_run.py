@@ -4,7 +4,6 @@ import time
 import argparse
 import json
 import random
-import re
 import sys 
 import hashlib
 from datetime import datetime, timezone
@@ -12,6 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from models import get_arm, make_client
+from svarparser import parse_response
 
 ROOT = Path(__file__).resolve().parent.parent 
 #DATA = ROOT / "filer_fra_Dag"
@@ -19,9 +19,6 @@ DATA = ROOT / "korpus_n150_s11"
 RESULTS = ROOT / "resultater"
 
 load_dotenv(ROOT / ".env")
-
-SCORE_LINE_RE = re.compile(r"SCORE\s*:\s*([^\n\r]*)", re.IGNORECASE)
-NUM_RE = re.compile(r"[0-9]+(?:[.,][0-9]+)?")
 
 def load_inputs(n_cvs: int, variant_id: str, cv_field: str):
     ad = (DATA / "stillingsannonse.md").read_text(encoding="utf-8")
@@ -48,26 +45,6 @@ def load_inputs(n_cvs: int, variant_id: str, cv_field: str):
 
 def build_prompt(template: str, ad: str, cv_text: str) -> str:
     return template.replace("{stillingsannonse}", ad).replace("{cv_text}", cv_text)
-
-def parse_score(text:str | None):
-    """Returns (score, parse_path): no_match | plain | sum_total | sum_added"""
-    if not text:
-        return None, "no_match"
-    lines = SCORE_LINE_RE.findall(text)
-    if not lines:
-        return None, "no_match"
-    tail = lines[-1]
-    if "=" in tail:
-        nums = NUM_RE.findall(tail.rsplit("=", 1)[1])
-        if not nums:
-            return None, "no_match"
-        return float(nums[0].replace(",", ".")), "sum_total"
-    nums = [float(n.replace(",", ".")) for n in NUM_RE.findall(tail)]
-    if not nums:
-        return None, "no_match"
-    if "+" in tail and len(nums) > 1:
-        return sum(nums), "sum_added"
-    return nums[0], "plain"
 
 def already_done(log_path: Path) -> tuple[set[tuple[str,int]], int]:
     """Returns (cells with a usable score, total rows in the log).
@@ -255,12 +232,15 @@ def main():
                 args.provider, args.model, prompt,
                 args.temperature, args.max_tokens,
             )
-            score, parse_path = parse_score(raw)
+            parsed = parse_response(raw, meta.get("finish_reason"))
             record = {
                 "applicant_id": aid,
                 "rep": rep,
-                "score": score,
-                "parse_path": parse_path,
+                "score" : parsed.score,
+                "deler": parsed.deler,
+                "deler_sum_ok": parsed.deler_sum_ok,
+                "parse_path": parsed.parse_path,
+                "outcome": parsed.outcome,
                 "raw_response": raw,
                 "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
                 "prompt_chars": len(prompt),
@@ -281,8 +261,9 @@ def main():
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
             fh.flush()
 
-            flag = "" if record["score"] is not None else "  <-- PARSE FAILURE"
-            print(f"[{i}/{len(work)}] {aid} rep{rep}: {record['score']}{flag}")
+            flag = ("" if parsed.outcome == "ok"
+                    else f" <-- {parsed.outcome.upper()}")
+            print(f"[{i}/{len(work)}] {aid} rep{rep}: {parsed.score}{flag}")
 
             if args.sleep:
                 time.sleep(args.sleep)
