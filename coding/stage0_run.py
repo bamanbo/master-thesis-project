@@ -169,7 +169,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
             print(f"   retry {attempt + 1} after error: {exc}")
             time.sleep(delay)
             delay = min(delay * 2, 120)
-    raise RuntimeError(f"call_model exhausted retrues for provider={provider}")
+    raise RuntimeError(f"call_model exhausted retries for provider={provider}")
 
 def main():
     ap = argparse.ArgumentParser()
