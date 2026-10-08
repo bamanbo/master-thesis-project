@@ -66,7 +66,7 @@ Ingen tekst i kroppen er betinget av navn, kjønn eller etnisitet.
 
 UTDATA
 ------
-  fasit_attributter.csv    grunnsannhet + fasitscore (INSTRUKTØRHOLDT)
+  fasit_attributter.csv    grunnsannhet + fasitscore
   cv_korpus.jsonl          CV-tekster: full + anonymisert variant
   kontrafaktiske_par.csv   matchede par, én manipulasjon hver
   kontrafaktiske_cv.jsonl  CV-tekster for parene
@@ -619,7 +619,7 @@ def hull_aar(maaneder):
 def sett_inn_hull(roller, maaneder, ramme):
     """Legger hullet MELLOM stillinger, slik at det gir et synlig datebrudd.
 
-    Kritisk for RQ5. Legges hullet foer den eldste stillingen, blir det
+    Legges hullet foer den eldste stillingen, blir det
     usynlig i den uforklarte armen -- en CV begynner jo bare ved foerste
     jobb. Da maaler manipulasjonen "ekstra linje vs. ingenting" i stedet
     for "merket hull vs. umerket hull", som er noe helt annet og mye

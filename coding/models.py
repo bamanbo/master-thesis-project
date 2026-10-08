@@ -59,24 +59,17 @@ ARMS: dict[str, Arm] = {
         provider="anthropic",
         model="claude-haiku-4-5-20251001",
         role="commercial, cheapest current tier",
-        max_tokens=512,
+        max_tokens=1024,
         reasoning=False,
         supports_temperature = False,
-        temperature_behaviour="applied",
+        temperature_behaviour="accepted",
     ),
 }
 
 def get_arm(key: str) -> Arm:
     if key not in ARMS:
         raise SystemExit(f"Unknown arm '{key}'. Choose from {', '.join(ARMS)}")
-    arm = ARMS[key]
-    if arm.model == "REPLACE_ME":
-        raise SystemExit(
-            f"Arm '{key}' has no model id yet. \n"
-            f" 1. python coding/models.py --list {arm.provider}\n"
-            f" 2. put the exact id into ARMS['{key}'].model in coding/models.py"
-        )
-    return arm
+    return ARMS[key]
 
 #-----------CLIENTS-----------
 def make_client(provider:str) -> Any:
@@ -128,10 +121,6 @@ def verify(arm: Arm) -> dict:
         "role": arm.role,
         "checked_utc": datetime.now(timezone.utc).isoformat(),
     }
-    if arm.model == "REPLACE_ME":
-        out["ok"] = False
-        out["error"] = "no model id set in ARMS - run --list for this provider"
-        return out
     try:
         c = make_client(arm.provider)
         probe= [{"role": "user", "content": "Svar med kun tallet 7."}]

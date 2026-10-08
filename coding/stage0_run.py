@@ -16,7 +16,7 @@ from svarparser import parse_response
 ROOT = Path(__file__).resolve().parent.parent 
 #DATA = ROOT / "filer_fra_Dag"
 DATA = ROOT / "korpus_n150_s11"
-RESULTS = ROOT / "resultater"
+RESULTS = ROOT / "resultater" / DATA.name
 
 load_dotenv(ROOT / ".env")
 
@@ -163,8 +163,9 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
         except (AttributeError, TypeError, KeyError, NameError):
             raise
         except Exception as exc:
-            if attempt == max_retries - 1:
-                raise 
+            status = getattr(exc, "status_code", None)
+            if attempt == max_retries - 1 or status in {400, 404, 422}:
+                raise
             print(f"   retry {attempt + 1} after error: {exc}")
             time.sleep(delay)
             delay = min(delay * 2, 120)
@@ -176,7 +177,7 @@ def main():
                     choices=["normistral", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--temperature", type=float, required=True)
-    ap.add_argument("--max-tokens", type=int, default=300)
+    ap.add_argument("--max-tokens", type=int, default=None, help="default: ARMS[provider].max_tokens")
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--n-cvs", type=int, default=20)
     ap.add_argument("--variant", default="P0")
@@ -191,6 +192,8 @@ def main():
     args = ap.parse_args()
 
     arm = get_arm(args.provider)
+    if args.max_tokens is None:
+        args.max_tokens = arm.max_tokens
     if args.model != arm.model:
         sys.exit(f"--model {args.model!r} != ARMS[{args.provider}].model {arm.model!r}; "
                  "the log would be mislabelled.")
@@ -200,7 +203,7 @@ def main():
 
     ad, template, cvs = load_inputs(args.n_cvs, args.variant, args.cv_field)
 
-    RESULTS.mkdir(exist_ok=True)
+    RESULTS.mkdir(parents=True, exist_ok=True)
     cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
     tag = f"{args.provider}_{args.model}_t{args.temperature}_{args.variant}_{cvtag}"
     tag = tag.replace(".", "-").replace("/", "-").replace(":", "-")
@@ -245,6 +248,7 @@ def main():
                 "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
                 "prompt_chars": len(prompt),
                 "prompt_variant_id": args.variant,
+                "corpus": DATA.name,
                 "cv_field": args.cv_field,
                 "provider": args.provider,
                 "model_requested": args.model,

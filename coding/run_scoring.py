@@ -4,7 +4,7 @@ times that variant specifies, and append each call to one JSONL log per
 arm and CV version. 
 
     python coding/run_scoring.py --check-ladder
-    python coding/run_scoring.py --arm anthropic --n-cvs 2 --variants P0, P0d
+    python coding/run_scoring.py --arm anthropic --n-cvs 2 --variants P0,P0d
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from svarparser import Parsed, parse_response
 ROOT = Path(__file__).resolve().parent.parent
 #DATA = ROOT / "filer_fra_Dag"
 DATA = ROOT / "korpus_n150_s11"
-RESULTS = ROOT / "resultater"
+RESULTS = ROOT / "resultater" / DATA.name
 
 
 def load_variants(wanted: str | None) -> list[dict]:
@@ -143,7 +143,7 @@ def main():
     variants = load_variants(args.variants)
     cvs = load_corpus(args.cv_field, args.n_cvs)
 
-    RESULTS.mkdir(exist_ok=True)
+    RESULTS.mkdir(parents=True, exist_ok=True)
     cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
     log_path = RESULTS / f"run_{args.arm}_{cvtag}.jsonl"
     done, rows_logged = already_done(log_path)
@@ -195,6 +195,7 @@ def main():
                 "applicant_id": aid,
                 "prompt_variant_id": v["variant_id"],
                 "avstandstrinn": v["avstandstrinn"],
+                "corpus": DATA.name,
                 "rep": rep,
                 "score": parsed.score,
                 "deler": parsed.deler,
