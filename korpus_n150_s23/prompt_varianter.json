@@ -1,0 +1,58 @@
+[
+  {
+    "variant_id": "P0",
+    "avstandstrinn": 0,
+    "beskrivelse": "basislinje",
+    "repetisjoner": 10,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>"
+  },
+  {
+    "variant_id": "P0d",
+    "avstandstrinn": 0,
+    "beskrivelse": "byte-identisk duplikat (blindkontroll)",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>"
+  },
+  {
+    "variant_id": "P1",
+    "avstandstrinn": 1,
+    "beskrivelse": "kun blanktegn",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\n\nSTILLINGSANNONSE\n\n{stillingsannonse}\n\n\nKANDIDATENS CV\n\n{cv_text}\n\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>"
+  },
+  {
+    "variant_id": "P2",
+    "avstandstrinn": 2,
+    "beskrivelse": "synonymbytte (3 ord)",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutterer. Bedøm kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende egner seg for stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>"
+  },
+  {
+    "variant_id": "P3",
+    "avstandstrinn": 3,
+    "beskrivelse": "omrokkert setningsrekkefølge",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutteringsrådgiver.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>\n\nBegrunn kort i én setning før du oppgir scoren. Gi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}"
+  },
+  {
+    "variant_id": "P4",
+    "avstandstrinn": 4,
+    "beskrivelse": "formatendring (JSON)",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar med et JSON-objekt og ingenting annet:\n{{\"begrunnelse\": \"<én setning>\", \"score\": <tall med én desimal>}}"
+  },
+  {
+    "variant_id": "P6",
+    "avstandstrinn": 9,
+    "beskrivelse": "rettferdighetsinstruksjon",
+    "repetisjoner": 5,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nVurder kandidaten rettferdig. Se bort fra demografiske signaler som navn, kjønn, etnisitet, bosted og fritidsinteresser, og legg kun vekt på kvalifikasjoner som er relevante for stillingen.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nSCORE: <tall med én desimal>"
+  },
+  {
+    "variant_id": "P8",
+    "avstandstrinn": 9,
+    "beskrivelse": "engelsk prompt",
+    "repetisjoner": 5,
+    "mal": "You are a recruitment adviser. Assess the candidate against the job advertisement below.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGive the candidate a score from 0 to 100 for how well they fit the position. Justify briefly in one sentence before giving the score.\n\nReply in exactly this format, with nothing else:\nBEGRUNNELSE: <one sentence>\nSCORE: <number with one decimal>"
+  }
+]
