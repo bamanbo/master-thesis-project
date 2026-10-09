@@ -172,6 +172,7 @@ def call_model(provider, model, prompt, temperature, max_tokens, max_retries=8):
     raise RuntimeError(f"call_model exhausted retries for provider={provider}")
 
 def main():
+    global DATA, RESULTS
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", required=True,
                     choices=["normistral", "anthropic", "openai"])
@@ -181,6 +182,9 @@ def main():
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--n-cvs", type=int, default=20)
     ap.add_argument("--variant", default="P0")
+    ap.add_argument("--corpus", default=DATA.name,
+                    help="corpus folder under the repo root "
+                    f"(default: {DATA.name})")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--sleep", type=float, default=0.0,
@@ -190,6 +194,10 @@ def main():
                     help="which CV version to send; cv_text carries name, " \
                     "birth year, address and any parental leave entry")
     args = ap.parse_args()
+    DATA = ROOT / args.corpus 
+    RESULTS = ROOT / "resultater" / DATA.name
+    if not (DATA / "cv_korpus.jsonl").exists():
+        sys.exit(f"No cv_korpus.jsonl in {DATA}")
 
     arm = get_arm(args.provider)
     if args.max_tokens is None:

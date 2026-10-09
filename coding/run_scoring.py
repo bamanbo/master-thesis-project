@@ -111,11 +111,16 @@ def check_ladder(cv_field: str) -> None:
             f"{sum(v['repetisjoner'] for v in vs)} per candidate")
 
 def main():
+    global DATA, RESULTS
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=["normistral", "openai", "anthropic"])
     ap.add_argument("--variants", default=None,
                     help="comma-separated variant ids; default is all")
-    ap.add_argument("--n-cvs", type=int, default=40)
+    ap.add_argument("--n-cvs", type=int, default=None,
+                    help="first N CVs by id; default is the whole corpus")
+    ap.add_argument("--corpus", default=DATA.name,
+                        help="corpus folder under the repo root "
+                        f"(default: {DATA.name})")
     ap.add_argument("--cv-field", choices=["cv_text", "cv_text_anonymisert"],
                     default="cv_text")
     ap.add_argument("--temperature", type=float)
@@ -127,6 +132,10 @@ def main():
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--check-ladder", action="store_true")
     args = ap.parse_args()
+    DATA = ROOT / args.corpus 
+    RESULTS = ROOT / "resultater" / DATA.name
+    if not (DATA / "cv_korpus.jsonl").exists():
+        sys.exit(f"No cv_korpus.jsonl in {DATA}")
 
     if args.check_ladder:
         check_ladder(args.cv_field)
