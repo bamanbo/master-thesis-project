@@ -1,0 +1,5 @@
+Evidence for Chapter 6:
+
+the date, 9 October 2026
+the model name, gpt-5.6-luna
+the exact error text: “Unsupported value: ‘temperature’ does not support 0 with this model. Only the default (1) value is supported.”
