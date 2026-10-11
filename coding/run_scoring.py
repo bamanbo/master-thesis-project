@@ -29,8 +29,9 @@ DATA = ROOT / "korpus_n150_s11"
 RESULTS = ROOT / "resultater" / DATA.name
 
 
-def load_variants(wanted: str | None) -> list[dict]:
-    vs = json.loads((DATA / "prompt_varianter.json").read_text(encoding="utf-8"))
+def load_variants(wanted: str | None, path: Path | None = None) -> list[dict]:
+    src = path if path is not None else DATA / "prompt_varianter.json"
+    vs = json.loads(src.read_text(encoding="utf-8"))
     if wanted:
         keep = [w.strip() for w in wanted.split(",")]
         known = {v["variant_id"] for v in vs}
@@ -40,7 +41,7 @@ def load_variants(wanted: str | None) -> list[dict]:
         vs = [v for v in vs if v["variant_id"] in keep]
     return sorted(vs, key=lambda v: (v["avstandstrinn"], v["variant_id"]))
 
-def load_corpus(cv_field: str, n_cvs: int) -> list[tuple[str,str]]:
+def load_corpus(cv_field: str, n_cvs: int, offset: int = 0) -> list[tuple[str,str]]:
     cvs = []
     with (DATA / "cv_korpus.jsonl").open(encoding="utf-8") as fh:
         for line in fh:
@@ -53,7 +54,7 @@ def load_corpus(cv_field: str, n_cvs: int) -> list[tuple[str,str]]:
                          f"for {rec.get('applicant_id')}")
             cvs.append((rec["applicant_id"], rec[cv_field]))
         cvs.sort(key=lambda r: r[0])
-        return cvs[:n_cvs]
+        return cvs[offset:offset + n_cvs if n_cvs else None]
 
 def already_done(log_path: Path) -> tuple[set[tuple[str, str, int]], int]:
     """Returns (cells with outcome 'ok', total rows in the log).
@@ -127,6 +128,12 @@ def main():
                     help="max requests per minute; 0 disables pacing")
     ap.add_argument("--max-calls", type=int, default=0,
                     help="stop after this many calls this session; 0 means all")
+    ap.add_argument("--cv-offset", type=int, default=0, 
+                    help="skip the first N CVs by id (held-out sets)")
+    ap.add_argument("--variants-file", type=Path, default=None,
+                    help="variants JSON; default is the corpus ladder")
+    ap.add_argument("--log", type=Path, default=None,
+                    help="log file; default resultater/<corpus>/run_*.jsonl")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--check-ladder", action="store_true")
@@ -147,12 +154,13 @@ def main():
         sys.exit(f"ARMS[{args.arm!r}].max_tokens = {arm.max_tokens} is too "
                  "low for a reasoning arm.")
     ad = (DATA / "stillingsannonse.md").read_text(encoding="utf-8")
-    variants = load_variants(args.variants)
-    cvs = load_corpus(args.cv_field, args.n_cvs)
+    variants = load_variants(args.variants, args.variants_file)
+    cvs = load_corpus(args.cv_field, args.n_cvs, args.cv_offset)
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
-    log_path = RESULTS / f"run_{args.arm}_{cvtag}.jsonl"
+    log_path = args.log or RESULTS / f"run_{args.arm}_{cvtag}.jsonl"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
     done, rows_logged = already_done(log_path)
 
     work = [(v, aid, cv, rep)

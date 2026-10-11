@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+"""
+generate_corpus_v2.py is put on hold for now.
+"""
+
 """
 COPY OF generate_corpus.py FROM 9TH OF OCTOBER 2026, ADJUSTED, STRUCTURALLY DIFFERENT CORPUS
 """
