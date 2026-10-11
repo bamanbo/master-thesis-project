@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+COPY OF generate_corpus.py FROM 9TH OF OCTOBER 2026, ADJUSTED, STRUCTURALLY DIFFERENT CORPUS
+"""
+
+"""
 generate_corpus.py -- syntetisk norsk CV-korpus for skjørhetseksperimentet.
 
 Denne fila implementerer §3.1 i experiment_design_generative_cv_ranking.md:

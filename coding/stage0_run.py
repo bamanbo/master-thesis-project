@@ -61,7 +61,8 @@ def already_done(log_path: Path) -> tuple[set[tuple[str,int]], int]:
                     continue
                 rows += 1 
                 rec = json.loads(line)
-                if rec.get("score") is not None:
+                if (rec.get("outcome", "ok") == "ok"
+                and rec.get("score") is not None):
                     done.add((rec["applicant_id"], rec["rep"]))
     return done, rows
 
@@ -177,7 +178,6 @@ def main():
     ap.add_argument("--provider", required=True,
                     choices=["normistral", "anthropic", "openai"])
     ap.add_argument("--model", required=True)
-    ap.add_argument("--temperature", type=float, required=True)
     ap.add_argument("--max-tokens", type=int, default=None, help="default: ARMS[provider].max_tokens")
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--n-cvs", type=int, default=20)
@@ -213,7 +213,7 @@ def main():
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     cvtag = "cvanon" if args.cv_field == "cv_text_anonymisert" else "cvfull"
-    tag = f"{args.provider}_{args.model}_t{args.temperature}_{args.variant}_{cvtag}"
+    tag = f"{args.provider}_{args.model}_{args.variant}_{cvtag}"
     tag = tag.replace(".", "-").replace("/", "-").replace(":", "-")
     log_path = RESULTS / f"stage0_{tag}.jsonl"
 
@@ -241,7 +241,7 @@ def main():
             prompt = build_prompt(template, ad, cv_text)
             raw, resolved_model, meta = call_model(
                 args.provider, args.model, prompt,
-                args.temperature, args.max_tokens,
+                None, args.max_tokens,
             )
             parsed = parse_response(raw, meta.get("finish_reason"))
             record = {
@@ -261,7 +261,6 @@ def main():
                 "provider": args.provider,
                 "model_requested": args.model,
                 "model_resolved": resolved_model,
-                "temperature_requested": args.temperature,
                 "temperature_sent": arm.supports_temperature,
                 "temperature_behaviour": arm.temperature_behaviour,
                 "max_tokens": args.max_tokens,

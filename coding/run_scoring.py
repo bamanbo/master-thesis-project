@@ -58,8 +58,8 @@ def load_corpus(cv_field: str, n_cvs: int) -> list[tuple[str,str]]:
 def already_done(log_path: Path) -> tuple[set[tuple[str, str, int]], int]:
     """Returns (cells with outcome 'ok', total rows in the log).
     
-    api_error, no_score, empty and truncated rows are not counted as done.
-     Truncated is deliberate: raising the token budget should make a resume redo those cells."""
+    Rows without a score, and cut-off rows, are not counted as done, 
+    so a resume retries them. Same rule as run_scoring.py"""
 
     done: set[tuple[str, str, int]] = set()
     rows = 0
@@ -123,7 +123,6 @@ def main():
                         f"(default: {DATA.name})")
     ap.add_argument("--cv-field", choices=["cv_text", "cv_text_anonymisert"],
                     default="cv_text")
-    ap.add_argument("--temperature", type=float)
     ap.add_argument("--rpm", type=float, default=0.0,
                     help="max requests per minute; 0 disables pacing")
     ap.add_argument("--max-calls", type=int, default=0,
@@ -140,9 +139,8 @@ def main():
     if args.check_ladder:
         check_ladder(args.cv_field)
         return
-    if not args.arm or args.temperature is None:
-        sys.exit("--arm and --temperature are required "
-                 "(or use --check-ladder)")
+    if not args.arm:
+        sys.exit("--arm is required (or use --check-ladder)")
 
     arm = get_arm(args.arm)
     if arm.reasoning and arm.max_tokens < 2048:
@@ -191,7 +189,7 @@ def main():
             prompt = build_prompt(v["mal"], ad, cv)
             try:
                 raw, resolved, meta = call_model(
-                    args.arm, arm.model, prompt, args.temperature, arm.max_tokens)
+                    args.arm, arm.model, prompt, None, arm.max_tokens)
                 parsed = parse_response(raw, meta.get("finish_reason"))
                 err = None
             except Exception as exc:
@@ -219,7 +217,6 @@ def main():
                 "provider": args.arm,
                 "model_requested": arm.model,
                 "model_resolved": resolved,
-                "temperature_requested": args.temperature,
                 "temperature_sent": arm.supports_temperature,
                 "temperature_behaviour": arm.temperature_behaviour,
                 "max_tokens": arm.max_tokens,
