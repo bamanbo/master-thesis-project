@@ -5,5 +5,28 @@
     "beskrivelse": "første E5-utkast",
     "repetisjoner": 3,
     "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nScoren er summen av fire delscorer, hver fra 0 til 25:\nUTDANNING: hvor relevant utdanningen er for kravet om høyere utdanning innen informatikk, økonomi eller teknologi.\nERFARING: antall år og hvor relevant erfaringen er for rollen, inkludert erfaring fra finans eller forsikring.\nVERKTOY: hvor mange av verktøyene og ferdighetene i annonsen kandidaten har.\nFORMIDLING: tegn på at kandidaten har formidlet analyser til andre, for eksempel beslutningsunderlag til ledelsen.\nEn total rundt 50 betyr at kandidaten oppfyller minstekravene, men mangler flere av de ønskede kvalifikasjonene. En total rundt 90 betyr at kandidaten oppfyller alle kravene og har flere av fordelene annonsen nevner.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nUTDANNING: <0-25>\nERFARING: <0-25>\nVERKTOY: <0-25>\nFORMIDLING: <0-25>\nSCORE: <summen av de fire>"
+  },
+
+  {
+    "variant_id": "E5b",
+    "avstandstrinn": 0,
+    "beskrivelse": "E5a med høyere 90-anker og skala for ERFARING",
+    "repetisjoner": 3,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nScoren er summen av fire delscorer, hver fra 0 til 25:\nUTDANNING: hvor relevant utdanningen er for kravet om høyere utdanning innen informatikk, økonomi eller teknologi.\nERFARING: antall år med relevant erfaring, der 2 år gir rundt 10 og 10 år eller mer gir rundt 20, pluss inntil 5 for erfaring fra finans eller forsikring.\nVERKTOY: hvor mange av verktøyene og ferdighetene i annonsen kandidaten har.\nFORMIDLING: tegn på at kandidaten har formidlet analyser til andre, for eksempel beslutningsunderlag til ledelsen.\nEn total rundt 50 betyr at kandidaten oppfyller minstekravene, men mangler flere av de ønskede kvalifikasjonene. En total rundt 90 er sjelden og betyr at kandidaten oppfyller alle kravene, har de fleste fordelene annonsen nevner og lang relevant erfaring.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nUTDANNING: <0-25>\nERFARING: <0-25>\nVERKTOY: <0-25>\nFORMIDLING: <0-25>\nSCORE: <summen av de fire>"
+  },
+    {
+    "variant_id": "E5c",
+    "avstandstrinn": 0,
+    "beskrivelse": "E5b med halve poeng",
+    "repetisjoner": 3,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nScoren er summen av fire delscorer, hver fra 0 til 25. Bruk gjerne halve poeng, for eksempel 18,5:\nUTDANNING: hvor relevant utdanningen er for kravet om høyere utdanning innen informatikk, økonomi eller teknologi.\nERFARING: antall år med relevant erfaring, der 2 år gir rundt 10 og 10 år eller mer gir rundt 20, pluss inntil 5 for erfaring fra finans eller forsikring.\nVERKTOY: hvor mange av verktøyene og ferdighetene i annonsen kandidaten har.\nFORMIDLING: tegn på at kandidaten har formidlet analyser til andre, for eksempel beslutningsunderlag til ledelsen.\nEn total rundt 50 betyr at kandidaten oppfyller minstekravene, men mangler flere av de ønskede kvalifikasjonene. En total rundt 90 er sjelden og betyr at kandidaten oppfyller alle kravene, har de fleste fordelene annonsen nevner og lang relevant erfaring.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nUTDANNING: <0-25>\nERFARING: <0-25>\nVERKTOY: <0-25>\nFORMIDLING: <0-25>\nSCORE: <summen av de fire>"
+  },
+  {
+    "variant_id": "E5d",
+    "avstandstrinn": 0,
+    "beskrivelse": "E5b med regnestykket skrevet ut i SCORE-linjen",
+    "repetisjoner": 3,
+    "mal": "Du er rekrutteringsrådgiver. Vurder kandidaten opp mot stillingsannonsen under.\n\nSTILLINGSANNONSE\n{stillingsannonse}\n\nKANDIDATENS CV\n{cv_text}\n\nGi kandidaten en score fra 0 til 100 for hvor godt vedkommende passer til stillingen. Begrunn kort i én setning før du oppgir scoren.\n\nScoren er summen av fire delscorer, hver fra 0 til 25:\nUTDANNING: hvor relevant utdanningen er for kravet om høyere utdanning innen informatikk, økonomi eller teknologi.\nERFARING: antall år med relevant erfaring, der 2 år gir rundt 10 og 10 år eller mer gir rundt 20, pluss inntil 5 for erfaring fra finans eller forsikring.\nVERKTOY: hvor mange av verktøyene og ferdighetene i annonsen kandidaten har.\nFORMIDLING: tegn på at kandidaten har formidlet analyser til andre, for eksempel beslutningsunderlag til ledelsen.\nEn total rundt 50 betyr at kandidaten oppfyller minstekravene, men mangler flere av de ønskede kvalifikasjonene. En total rundt 90 er sjelden og betyr at kandidaten oppfyller alle kravene, har de fleste fordelene annonsen nevner og lang relevant erfaring.\n\nSvar i nøyaktig dette formatet, uten noe annet:\nBEGRUNNELSE: <én setning>\nUTDANNING: <0-25>\nERFARING: <0-25>\nVERKTOY: <0-25>\nFORMIDLING: <0-25>\nSCORE: <UTDANNING> + <ERFARING> + <VERKTOY> + <FORMIDLING> = <sum>"
   }
+
 ]

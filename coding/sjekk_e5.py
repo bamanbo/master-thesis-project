@@ -12,10 +12,27 @@ from __future__ import annotations
 
 import argparse 
 import json 
+import re 
 from collections import Counter, defaultdict
 from pathlib import Path
 
 MIN_PARSE, MIN_DISTINCT, MAX_AT_K = 0.98, 12, 2
+LABELS = ("UTDANNING", "ERFARING", "VERKT[OØ]Y", "FORMIDLING")
+
+def sum_of_parts(raw: str | None) -> float | None:
+    """Sum of the four subscores in the answer, None if one is missing.
+    
+    Reads past a <think> block and accepts all four on one line.
+    """
+    text = (raw or "").split("</think>")[-1]
+    total = 0.0
+    for label in LABELS:
+        m = re.search(label + r"\W{0,4}:\W{0,4}(\d+(?:[.,]\d+)?)",
+                      text, re.I)
+        if not m:
+            return None
+        total += float(m.group(1).replace(",", "."))
+    return total
 
 
 
@@ -25,6 +42,9 @@ def main() -> None:
     ap.add_argument("--variant", required=True)
     ap.add_argument("--k", type=int, default=None,
                     help="cut-off; default 20/150 of the CVs, rounded")
+    ap.add_argument("--fra-delscorer", action="store_true",
+                    help="score = sum of the four subscores, "
+                    "not the total the model states")
     a = ap.parse_args()
 
     rows = [json.loads(line) for line in 
@@ -34,6 +54,10 @@ def main() -> None:
         raise SystemExit(f"No rows for {a.variant} in {a.log}")
 
     judged = [r for r in rows if r["outcome"] != "api_error"]
+    if a.fra_delscorer:
+        for r in judged:
+            r["score"] = sum_of_parts(r.get("raw_response"))
+            r["outcome"] = "ok" if r["score"] is not None else "no_parts"
     ok = [r for r in judged if r["outcome"] == "ok"]
     parse = len(ok) / len(judged) if judged else 0.0
 
