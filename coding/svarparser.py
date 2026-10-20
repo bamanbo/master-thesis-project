@@ -18,9 +18,14 @@ THINK_RE = re.compile(r"<think>.*?</think>\s*", re.S)
 JSON_RE = re.compile(r"\{.*\}", re.S)
 SCORE_RE = re.compile(r"(?<![A-ZÆØÅ])SCORE\W{0,3}:\s*([^\n\r]*)",re.I)
 DEL_RE = re.compile(
-    r"^[\s*#>\-]{0,6}(UTDANNING|ERFARING|VERKT[OØ]Y|FORMIDLING)"
+    r"^[\s*#>\-]{0,6}(UTDANNING|ERFARING|VERKT[OØ]Y?|FORMIDLING)"
     r"[^:\n\r]{0,20}:\D{0,6}(" + _NUM + ")",
     re.I | re.M)
+# Fallback for labels written mid-line, e.g all four on one line. 
+# The number must follow the colo directly, so prose is rarely found.
+DEL_INLINE_RE = re.compile(
+    r"(?<![A-ZÆØÅ])(UTDANNING|ERFARING|VERKT[OØ]Y?|FORMIDLING)"
+    r"\W{0,4}:\W{0,4}(" + _NUM + ")", re.I)
 
 class Parsed(NamedTuple):
     score: float | None #total, 0-100
@@ -33,7 +38,8 @@ def _num(s: str) -> float:
     return float(s.replace(",", "."))
 
 def _label(key: str) -> str:
-    return key.upper().replace("Ø", "O")
+    k = key.upper().replace("Ø", "O")
+    return "VERKTOY" if k.startswith("VERKT") else k
 
 def _score_line(tail: str):
     """(total, addends, path) from the text after SCORE:'."""
@@ -92,6 +98,8 @@ def parse_response(text: str | None, finish_reason=None) -> Parsed:
     if total is None and len(deler) < len(LABELS):
         json_path, path = path, "no_match"
         deler = {_label(k): _num(v) for k,v in DEL_RE.findall(body)}
+        for k, v in DEL_INLINE_RE.findall(body):
+            deler.setdefault(_label(k), _num(v))
         lines = SCORE_RE.findall(body)
         if lines:
             total, addends, path = _score_line(lines[-1])
