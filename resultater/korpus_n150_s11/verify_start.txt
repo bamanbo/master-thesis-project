@@ -1,0 +1,49 @@
+[OK ] normistral  NorMistral-11b-thinking:latest
+      resolved    : NorMistral-11b-thinking:latest
+      fingerprint : None
+      reply       : '<think> Brukeren ber meg om å svare med kun tallet 7. De vil ha et enkelt, direkte svar uten noen ekstra tekst.\n\nOppgaven er klar og tydelig: "Svar med kun tall'
+[OK ] openai      gpt-5.6-luna
+      resolved    : gpt-5.6-luna
+      fingerprint : None
+      reply       : '7'
+[OK ] anthropic   claude-haiku-4-5-20251001
+      resolved    : claude-haiku-4-5-20251001
+      fingerprint : n/a (provider does not emit this field)
+      reply       : '7'
+
+--- provenance block
+[
+  {
+    "arm": "normistral",
+    "provider": "normistral",
+    "model_requested": "NorMistral-11b-thinking:latest",
+    "role": "open-weights Norwegian (11B), reasoning-tuned",
+    "checked_utc": "2026-10-21T11:42:45.510518+00:00",
+    "model_resolved": "NorMistral-11b-thinking:latest",
+    "system_fingerprint": null,
+    "reply": "<think> Brukeren ber meg om å svare med kun tallet 7. De vil ha et enkelt, direkte svar uten noen ekstra tekst.\n\nOppgaven er klar og tydelig: \"Svar med kun tall",
+    "ok": true
+  },
+  {
+    "arm": "openai",
+    "provider": "openai",
+    "model_requested": "gpt-5.6-luna",
+    "role": "commercial, cheapest current tier",
+    "checked_utc": "2026-10-21T11:42:50.634138+00:00",
+    "model_resolved": "gpt-5.6-luna",
+    "system_fingerprint": null,
+    "reply": "7",
+    "ok": true
+  },
+  {
+    "arm": "anthropic",
+    "provider": "anthropic",
+    "model_requested": "claude-haiku-4-5-20251001",
+    "role": "commercial, cheapest current tier",
+    "checked_utc": "2026-10-21T11:42:52.106528+00:00",
+    "model_resolved": "claude-haiku-4-5-20251001",
+    "system_fingerprint": "n/a (provider does not emit this field)",
+    "reply": "7",
+    "ok": true
+  }
+]

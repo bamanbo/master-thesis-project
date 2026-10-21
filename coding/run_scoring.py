@@ -57,10 +57,10 @@ def load_corpus(cv_field: str, n_cvs: int, offset: int = 0) -> list[tuple[str,st
         return cvs[offset:offset + n_cvs if n_cvs else None]
 
 def already_done(log_path: Path) -> tuple[set[tuple[str, str, int]], int]:
-    """Returns (cells with outcome 'ok', total rows in the log).
+    """Returns (cells the model has answered, total rows in the log).
     
-    Rows without a score, and cut-off rows, are not counted as done, 
-    so a resume retries them. Same rule as run_scoring.py"""
+    Only api_error rows are retried. no_score, truncated and empty
+    rows are the model's answer and stay in the data as failures."""
 
     done: set[tuple[str, str, int]] = set()
     rows = 0
@@ -72,7 +72,7 @@ def already_done(log_path: Path) -> tuple[set[tuple[str, str, int]], int]:
                     continue
                 rows += 1
                 r = json.loads(line)
-                if r.get("outcome") == "ok":
+                if r.get("outcome") != "api_error":
                     done.add((r["prompt_variant_id"], r["applicant_id"],
                               r["rep"]))
     return done, rows
