@@ -85,13 +85,13 @@ def make_client(provider:str) -> Any:
         from openai import OpenAI
         if not os.environ.get("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY missing or empty in .env")
-        return OpenAI(timeout=300.0)
+        return OpenAI(timeout=60.0)
 
     if provider == "anthropic":
         from anthropic import Anthropic
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise RuntimeError("ANTHROPIC_API_KEY missing or empty in .env")
-        return Anthropic(timeout=300.0)
+        return Anthropic(timeout=60.0)
 
     raise RuntimeError(f"Unknown provider: {provider}")
 
