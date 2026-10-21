@@ -16,7 +16,8 @@ _NUM = r"[0-9]+(?:[.,][0-9]+)?"
 NUM_RE = re.compile(_NUM)
 THINK_RE = re.compile(r"<think>.*?</think>\s*", re.S)
 JSON_RE = re.compile(r"\{.*\}", re.S)
-SCORE_RE = re.compile(r"(?<![A-ZÆØÅ])SCORE\W{0,3}:\s*([^\n\r]*)",re.I)
+SCORE_RE = re.compile(
+    r"(?<![A-ZÆØÅ])(?:SCORE|TOTAL)\W{0,3}:[ \t]*([^\n\r]*)", re.I)
 DEL_RE = re.compile(
     r"^[\s*#>\-]{0,6}(UTDANNING|ERFARING|VERKT[OØ]Y?|FORMIDLING)"
     r"[^:\n\r]{0,20}:\D{0,6}(" + _NUM + ")",

@@ -20,6 +20,16 @@ CASES = [
     ("BEGRUNNELSE: Erfaring er solid med 9 år, Samlet sett "
      "vurderes kandidaten til **SCORE: 58** av 100.",
      58.0, None, None),
+     ("BEGRUNNELSE: X.\n\n**SCORE:**\n- UTDANNING: 18\n"
+      "- ERFARING: 18\n- VERKTØY: 20\n- FORMIDLING: 14\n"
+      "- TOTAL: 50",
+      50.0, {"UTDANNING": 18, "ERFARING":18, "VERKTOY":20, 
+             "FORMIDLING": 14}, False),
+    ("BEGRUNNELSE: x. SCORE:\n\n**UTDANNING:** 18\n"
+     "**ERFARING:** 18\n**VERKTOY:** 20\n**FORMIDLING:** 10\n"
+     "**TOTAL:** 56",
+     56.0, {"UTDANNING": 18, "ERFARING": 18, "VERKTOY": 20, 
+            "FORMIDLING": 10}, False),
 ]
 
 def main() -> None:
